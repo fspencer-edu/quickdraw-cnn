@@ -28,16 +28,26 @@ def preprocess(image: tf.Tensor, label: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor
 
 
 def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
+    print(f"[DATA] tfds_name: {cfg.tfds_name}", flush=True)
+    print(f"[DATA] dataset_dir: {paths.dataset_dir}", flush=True)
+
+    print("[DATA] Creating TFDS builder...", flush=True)
     builder = tfds.builder(cfg.tfds_name, data_dir=str(paths.dataset_dir))
+
+    print("[DATA] Running download_and_prepare()...", flush=True)
     builder.download_and_prepare()
 
+    print("[DATA] Reading dataset info...", flush=True)
     info = builder.info
+    print(f"[DATA] available splits: {list(info.splits.keys())}", flush=True)
+
     num_classes = info.features["label"].num_classes
     class_names = info.features["label"].names
 
     save_json({"class_names": class_names}, paths.class_names_path)
 
     total_examples = info.splits["train"].num_examples
+    print(f"[DATA] total train examples: {total_examples}", flush=True)
 
     val_fraction = cfg.train.validation_fraction
     test_fraction = 0.10
@@ -49,17 +59,23 @@ def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
     train_pct = int(train_fraction * 100)
     val_end_pct = int((train_fraction + val_fraction) * 100)
 
+    train_split = f"train[:{train_pct}%]"
+    val_split = f"train[{train_pct}%:{val_end_pct}%]"
+    test_split = f"train[{val_end_pct}%:]"
+
+    print(f"[DATA] train split: {train_split}", flush=True)
+    print(f"[DATA] val split:   {val_split}", flush=True)
+    print(f"[DATA] test split:  {test_split}", flush=True)
+
+    print("[DATA] Loading TFDS splits...", flush=True)
     train_ds, val_ds, test_ds = tfds.load(
         cfg.tfds_name,
-        split=[
-            f"train[:{train_pct}%]",
-            f"train[{train_pct}%:{val_end_pct}%]",
-            f"train[{val_end_pct}%:]",
-        ],
+        split=[train_split, val_split, test_split],
         data_dir=str(paths.dataset_dir),
         as_supervised=True,
     )
 
+    print("[DATA] Applying preprocessing...", flush=True)
     train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
     val_ds = val_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
     test_ds = test_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
@@ -67,6 +83,7 @@ def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
     train_examples = int(total_examples * train_fraction)
     test_examples = total_examples - int(total_examples * (train_fraction + val_fraction))
 
+    print("[DATA] Batching and prefetching...", flush=True)
     train_ds = (
         train_ds
         .shuffle(cfg.train.shuffle_buffer, seed=cfg.train.random_seed)
@@ -75,6 +92,8 @@ def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
     )
     val_ds = val_ds.batch(cfg.train.batch_size).prefetch(tf.data.AUTOTUNE)
     test_ds = test_ds.batch(cfg.train.batch_size).prefetch(tf.data.AUTOTUNE)
+
+    print("[DATA] Dataset bundle ready.", flush=True)
 
     return DatasetBundle(
         train_ds=train_ds,
