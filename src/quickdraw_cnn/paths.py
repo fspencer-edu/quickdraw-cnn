@@ -33,18 +33,15 @@ def build_paths(cfg: AppConfig) -> ProjectPaths:
     dataset_root = Path(cfg.paths.dataset_root)
     dataset_dir = dataset_root
 
-    # project paths
     project_dir = nas_root / "projects" / cfg.project_name
-    experiment_dir = project_dir / "experiments"
     checkpoint_dir = project_dir / "checkpoints"
+    experiment_dir = project_dir / "experiments"
     log_dir = project_dir / "logs"
     export_dir = project_dir / "exports"
 
-    # model paths
     model_root = nas_root / "models" / cfg.project_name
     model_version_dir = model_root / cfg.versioning.model_version
 
-    # registry paths
     staging_dir = nas_root / "registry" / "staging" / cfg.project_name
     production_dir = nas_root / "registry" / "production" / cfg.project_name
 
@@ -89,20 +86,3 @@ def ensure_dirs(paths: ProjectPaths) -> None:
         print(f"[PATHS] ensuring: {path}", flush=True)
         path.mkdir(parents=True, exist_ok=True)
         print(f"[PATHS] done: {path}", flush=True)
-    dirs = [
-        paths.nas_root,
-        paths.dataset_root,
-        paths.dataset_dir,
-        paths.project_dir,
-        paths.checkpoint_dir,
-        paths.experiment_dir,
-        paths.log_dir,
-        paths.export_dir,
-        paths.model_root,
-        paths.model_version_dir,
-        paths.staging_dir,
-        paths.production_dir,
-    ]
-
-    for path in dirs:
-        path.mkdir(parents=True, exist_ok=True)
