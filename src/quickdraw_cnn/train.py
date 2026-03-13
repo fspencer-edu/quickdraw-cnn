@@ -10,20 +10,32 @@ from quickdraw_cnn.utils import save_json, set_global_seed
 
 
 def main() -> None:
+    print("[TRAIN] Loading config...", flush=True)
     cfg = load_config()
+
+    print("[TRAIN] Building paths...", flush=True)
     paths = build_paths(cfg)
+
+    print("[TRAIN] Ensuring directories...", flush=True)
     ensure_dirs(paths)
 
+    print("[TRAIN] Setting seed...", flush=True)
     set_global_seed(cfg.train.random_seed)
 
     if cfg.runtime.use_mixed_precision:
+        print("[TRAIN] Enabling mixed precision...", flush=True)
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
+    print("[TRAIN] Loading datasets...", flush=True)
     dataset_bundle = load_datasets(cfg, paths)
 
+    print("[TRAIN] Building model...", flush=True)
     model = build_model(cfg, dataset_bundle.num_classes)
+
+    print("[TRAIN] Compiling model...", flush=True)
     model = compile_model(model, cfg)
 
+    print("[TRAIN] Creating callbacks...", flush=True)
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
             filepath=str(paths.checkpoint_path),
@@ -40,6 +52,7 @@ def main() -> None:
         ),
     ]
 
+    print("[TRAIN] Starting training...", flush=True)
     history = model.fit(
         dataset_bundle.train_ds,
         validation_data=dataset_bundle.val_ds,
@@ -48,7 +61,10 @@ def main() -> None:
         verbose=1,
     )
 
+    print("[TRAIN] Evaluating model...", flush=True)
     test_loss, test_acc = model.evaluate(dataset_bundle.test_ds, verbose=1)
+
+    print("[TRAIN] Saving model...", flush=True)
     model.save(paths.final_model_path)
 
     save_json(history.history, paths.history_path)
