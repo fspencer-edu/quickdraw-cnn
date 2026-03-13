@@ -30,10 +30,8 @@ class ProjectPaths:
 
 def build_paths(cfg: AppConfig) -> ProjectPaths:
     nas_root = Path(cfg.paths.nas_root)
-
-    # dataset paths
-    dataset_root = nas_root / "datasets"
-    dataset_dir = dataset_root / cfg.dataset_name
+    dataset_root = Path(cfg.paths.dataset_root)
+    dataset_dir = dataset_root
 
     # project paths
     project_dir = nas_root / "projects" / cfg.project_name
