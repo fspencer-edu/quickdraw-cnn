@@ -2,3 +2,5 @@ tensorflow
 tensorflow-datasets
 numpy
 PyYAML
+tensorflow[and-cuda]
+importlib_resources
