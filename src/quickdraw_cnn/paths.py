@@ -9,6 +9,7 @@ from quickdraw_cnn.config import AppConfig
 @dataclass
 class ProjectPaths:
     nas_root: Path
+    dataset_root: Path
     dataset_dir: Path
     project_dir: Path
     checkpoint_dir: Path
@@ -29,22 +30,29 @@ class ProjectPaths:
 
 def build_paths(cfg: AppConfig) -> ProjectPaths:
     nas_root = Path(cfg.paths.nas_root)
-    project_dir = nas_root / "projects" / cfg.project_name
-    model_root = nas_root / "models" / cfg.project_name
-    model_version_dir = model_root / cfg.versioning.model_version
 
+    # dataset paths
+    dataset_root = nas_root / "datasets"
+    dataset_dir = dataset_root / cfg.dataset_name
+
+    # project paths
+    project_dir = nas_root / "projects" / cfg.project_name
     experiment_dir = project_dir / "experiments"
     checkpoint_dir = project_dir / "checkpoints"
     log_dir = project_dir / "logs"
     export_dir = project_dir / "exports"
 
-    dataset_dir = nas_root / "datasets" / cfg.dataset_name
+    # model paths
+    model_root = nas_root / "models" / cfg.project_name
+    model_version_dir = model_root / cfg.versioning.model_version
 
+    # registry paths
     staging_dir = nas_root / "registry" / "staging" / cfg.project_name
     production_dir = nas_root / "registry" / "production" / cfg.project_name
 
     return ProjectPaths(
         nas_root=nas_root,
+        dataset_root=dataset_root,
         dataset_dir=dataset_dir,
         project_dir=project_dir,
         checkpoint_dir=checkpoint_dir,
@@ -67,6 +75,7 @@ def build_paths(cfg: AppConfig) -> ProjectPaths:
 def ensure_dirs(paths: ProjectPaths) -> None:
     dirs = [
         paths.nas_root,
+        paths.dataset_root,
         paths.dataset_dir,
         paths.project_dir,
         paths.checkpoint_dir,
@@ -78,5 +87,6 @@ def ensure_dirs(paths: ProjectPaths) -> None:
         paths.staging_dir,
         paths.production_dir,
     ]
+
     for path in dirs:
         path.mkdir(parents=True, exist_ok=True)

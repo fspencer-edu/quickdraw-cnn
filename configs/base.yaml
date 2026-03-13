@@ -4,6 +4,7 @@ tfds_name: quickdraw_bitmap
 
 paths:
   nas_root: /mnt/ml
+  dataset_root: /mnt/ml/datasets/quickdraw
 
 model:
   image_size: 28

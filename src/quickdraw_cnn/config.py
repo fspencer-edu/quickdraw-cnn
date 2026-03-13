@@ -10,6 +10,7 @@ import yaml
 @dataclass
 class PathsConfig:
     nas_root: str
+    dataset_root: str | None = None
 
 
 @dataclass
@@ -28,8 +29,9 @@ class TrainConfig:
     learning_rate: float
     random_seed: int
     validation_fraction: float
-    shuffle_buffer: int
-    early_stopping_patience: int
+    test_fraction: float = 0.10
+    shuffle_buffer: int = 20000
+    early_stopping_patience: int = 3
 
 
 @dataclass

@@ -1,5 +1,20 @@
 # Quick Draw CNN
 
+# Test Path
+
+```python
+python - <<EOF
+from quickdraw_cnn.config import load_config
+from quickdraw_cnn.paths import build_paths
+
+cfg = load_config()
+paths = build_paths(cfg)
+
+print(paths.dataset_dir)
+EOF
+```
+
+
 # Overall Architecture
 ```
 Mac
