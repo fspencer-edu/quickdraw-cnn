@@ -40,27 +40,22 @@ def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
     total_examples = info.splits["train"].num_examples
 
     val_fraction = cfg.train.validation_fraction
-    test_fraction = getattr(cfg.train, "test_fraction", 0.1)
-
-    if val_fraction <= 0 or test_fraction <= 0 or (val_fraction + test_fraction) >= 1:
-        raise ValueError(
-            f"Invalid split fractions: validation_fraction={val_fraction}, "
-            f"test_fraction={test_fraction}. They must both be > 0 and sum to less than 1."
-        )
-
+    test_fraction = 0.10
     train_fraction = 1.0 - val_fraction - test_fraction
 
-    train_pct = int(train_fraction * 100)
-    val_start_pct = train_pct
-    val_end_pct = int((train_fraction + val_fraction) * 100)
+    if train_fraction <= 0:
+        raise ValueError("validation_fraction + test_fraction must be less than 1.0")
 
-    train_split = f"train[:{train_pct}%]"
-    val_split = f"train[{val_start_pct}%:{val_end_pct}%]"
-    test_split = f"train[{val_end_pct}%:]"
+    train_pct = int(train_fraction * 100)
+    val_end_pct = int((train_fraction + val_fraction) * 100)
 
     train_ds, val_ds, test_ds = tfds.load(
         cfg.tfds_name,
-        split=[train_split, val_split, test_split],
+        split=[
+            f"train[:{train_pct}%]",
+            f"train[{train_pct}%:{val_end_pct}%]",
+            f"train[{val_end_pct}%:]",
+        ],
         data_dir=str(paths.dataset_dir),
         as_supervised=True,
     )
@@ -78,7 +73,6 @@ def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
         .batch(cfg.train.batch_size)
         .prefetch(tf.data.AUTOTUNE)
     )
-
     val_ds = val_ds.batch(cfg.train.batch_size).prefetch(tf.data.AUTOTUNE)
     test_ds = test_ds.batch(cfg.train.batch_size).prefetch(tf.data.AUTOTUNE)
 
