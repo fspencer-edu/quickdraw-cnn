@@ -1,6 +1,6 @@
 project_name: quickdraw-cnn
 dataset_name: quickdraw
-tfds_name: quickdraw
+tfds_name: quickdraw_bitmap
 
 paths:
   nas_root: /mnt/ml
