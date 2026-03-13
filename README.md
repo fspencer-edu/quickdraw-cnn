@@ -1,7 +1,7 @@
 # Quick Draw CNN
 
 # Overall Architecture
-
+```
 Mac
  └── local repo development
 
@@ -10,9 +10,9 @@ Linux PC
 
 NAS
  └── shared storage at /mnt/ml
-
+```
 # NAS Structure
-
+```
 MachineLearning/
 ├── datasets/
 │   ├── quickdraw/
@@ -47,3 +47,4 @@ MachineLearning/
     └── production/
         ├── quickdraw-cnn/
         └── fashion-cnn/
+```
