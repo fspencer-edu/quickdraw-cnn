@@ -76,6 +76,24 @@ def ensure_dirs(paths: ProjectPaths) -> None:
     dirs = [
         paths.nas_root,
         paths.dataset_root,
+        paths.project_dir,
+        paths.checkpoint_dir,
+        paths.experiment_dir,
+        paths.log_dir,
+        paths.export_dir,
+        paths.model_root,
+        paths.model_version_dir,
+        paths.staging_dir,
+        paths.production_dir,
+    ]
+
+    for path in dirs:
+        print(f"[PATHS] ensuring: {path}", flush=True)
+        path.mkdir(parents=True, exist_ok=True)
+        print(f"[PATHS] done: {path}", flush=True)
+    dirs = [
+        paths.nas_root,
+        paths.dataset_root,
         paths.dataset_dir,
         paths.project_dir,
         paths.checkpoint_dir,
