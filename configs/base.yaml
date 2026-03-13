@@ -1,0 +1,28 @@
+project_name: quickdraw-cnn
+dataset_name: quickdraw
+tfds_name: quickdraw_bitmap
+
+paths:
+  nas_root: /mnt/ml
+
+model:
+  image_size: 28
+  channels: 1
+  num_filters: [32, 64, 128]
+  dense_units: 256
+  dropout: 0.3
+
+train:
+  batch_size: 256
+  epochs: 10
+  learning_rate: 0.001
+  random_seed: 42
+  validation_fraction: 0.10
+  shuffle_buffer: 20000
+  early_stopping_patience: 3
+
+runtime:
+  use_mixed_precision: false
+
+versioning:
+  model_version: v1

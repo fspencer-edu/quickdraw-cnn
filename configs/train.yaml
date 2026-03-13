@@ -1,0 +1,4 @@
+mode: train
+save_best_only: true
+monitor: val_accuracy
+monitor_mode: max
