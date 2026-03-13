@@ -37,29 +37,40 @@ def load_datasets(cfg: AppConfig, paths: ProjectPaths) -> DatasetBundle:
 
     save_json({"class_names": class_names}, paths.class_names_path)
 
-    train_ds = tfds.load(
-        cfg.tfds_name,
-        split="train",
-        data_dir=str(paths.dataset_dir),
-        as_supervised=True,
-    )
+    total_examples = info.splits["train"].num_examples
 
-    test_ds = tfds.load(
+    val_fraction = cfg.train.validation_fraction
+    test_fraction = getattr(cfg.train, "test_fraction", 0.1)
+
+    if val_fraction <= 0 or test_fraction <= 0 or (val_fraction + test_fraction) >= 1:
+        raise ValueError(
+            f"Invalid split fractions: validation_fraction={val_fraction}, "
+            f"test_fraction={test_fraction}. They must both be > 0 and sum to less than 1."
+        )
+
+    train_fraction = 1.0 - val_fraction - test_fraction
+
+    train_pct = int(train_fraction * 100)
+    val_start_pct = train_pct
+    val_end_pct = int((train_fraction + val_fraction) * 100)
+
+    train_split = f"train[:{train_pct}%]"
+    val_split = f"train[{val_start_pct}%:{val_end_pct}%]"
+    test_split = f"train[{val_end_pct}%:]"
+
+    train_ds, val_ds, test_ds = tfds.load(
         cfg.tfds_name,
-        split="test",
+        split=[train_split, val_split, test_split],
         data_dir=str(paths.dataset_dir),
         as_supervised=True,
     )
 
     train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+    val_ds = val_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
     test_ds = test_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
 
-    train_examples = info.splits["train"].num_examples
-    test_examples = info.splits["test"].num_examples
-    val_size = int(train_examples * cfg.train.validation_fraction)
-
-    val_ds = train_ds.take(val_size)
-    train_ds = train_ds.skip(val_size)
+    train_examples = int(total_examples * train_fraction)
+    test_examples = total_examples - int(total_examples * (train_fraction + val_fraction))
 
     train_ds = (
         train_ds
